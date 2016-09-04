@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>分页</title>
+<style type="text/css">
+*{ margin:0; padding:0;}
+.p10{padding:10px;}
+.m10{margin: 10px;}
+.pagination ul{ display:inline-block;}
+.pagination li { display: inline; border:1px solid #ccc; padding: 5px; margin: 0 5px; cursor: pointer;}
+.pagination .active { background-color: #ccc; cursor: default;}
+.pagination .ellipse {border: none; cursor: default;}
+.pagination form{display: inline-block;}
+.pagination .disabled {cursor: not-allowed; opacity: .5;}
+.pagination input {width: 20px;}
+</style>
+</head>
+<body>
+<div class="js-list">仙</div>
+<div class="m10">
+    <div id="paging" class="pagination"></div>
+</div>
+<script src="../js/lib/jquery-1.12.0.js"></script> 
+;(function($){
+    $.fn.pagination =  function(opt,callback){
+        var obj = $.extend({
+            current: 1,         //当前页
+            total: 0,           //信息数
+            showTotal: true,    //显示信息数
+            pageSize: 15,       //每页显示数  
+            go:true,            //显示跳到第X页
+            changePage:function(parg){} //分页后的回调函数
+        },opt || {}),
+        that = this;
+        if (obj.total<=obj.pageSize) return false; //如果信息数量没有大于每页显示数就不显示分页
+        obj.pages = Math.ceil(obj.total/obj.pageSize) //求得页数
+        that.empty().off(); //清空里面的元素，并解掉里面的所有绑定
+        var pageList = $('<ul></ul>').appendTo(that);
+        function init(num){            
+            pageList.empty(); //清空页码
+            function newLi(newI){
+                var dom = (newI=== obj.current) ? '<li class="active">'+newI+'</li>' : '<li class="js-item">'+newI+'</li>';
+                return dom;
+            };
+            if (obj.pages>10) {
+                if (num<5) {
+                    pageList.append(function(){
+                        var dom = '';
+                        for (var i = 1; i <6; i++) {
+                            dom += newLi(i);
+                        };
+                        dom += '<li class="ellipse">…</li>';
+                        for (var i = obj.pages-2; i < obj.pages; i++) {
+                            dom += newLi(i);
+                        };
+                        return dom;
+                    });
+                } else if(num>obj.pages-4){
+                    pageList.append(function(){
+                        var dom = '';
+                        for (var i = 1; i <3; i++) {
+                            dom += newLi(i);
+                        };
+                        dom += '<li class="ellipse">…</li>';
+                        for (var i = obj.pages-5; i <= obj.pages; i++) {
+                            dom += newLi(i);
+                        };
+                        return dom;
+                    });
+                }else{
+                    pageList.append(function(){
+                        var dom = '';
+                        for (var i = 1; i <3; i++) {
+                            dom += newLi(i);
+                        };
+                        dom += '<li class="ellipse">…</li>';
+                        var minNum = num-3,
+                            maxNum = num+4;
+                        for (var i = minNum; i < maxNum; i++) {
+                            dom += newLi(i);
+                        };
+                        dom += '<li class="ellipse">…</li>';
+                        for (var i = obj.pages-2; i < obj.pages; i++) {
+                           dom += newLi(i);
+                        };
+                        return dom;
+                    });
+                };
+            } else{
+                pageList.append(function(){
+                    var dom = '';
+                    for (var i = 1; i <= obj.pages; i++) {
+                        dom += (i=== obj.current) ? '<li class="active">'+i+'</li>' : '<li class="js-item">'+i+'</li>';
+                    };
+                    return dom;
+                });
+            };
+            if (num!==1) {
+                pageList.prepend('<li class="js-pre">上一页</li>');
+            };
+            if (num!==obj.pages) {
+                pageList.append('<li class="js-next">下一页</li>');
+            };
+            //判断是否显示"跳转的input"
+            obj.go && pageList.append('<form class="js-toPage">跳转到<input type="text" class="js-toVal"> <button>go</button></form>');
+            obj.changePage(num); //执行回调函数
+        };
+        init(obj.current);
+        //判断是否显示有多少条数据
+        obj.showTotal && that.append(' <span> 共有'+obj.total+'条数据</span>');
+        // 点击页码
+        that.on('click', '.js-item', function(event) {
+            obj.current = $(this).text()*1;
+            init(obj.current);
+        });
+        // 点击上一页或下一页时
+        that.on('click', '.js-pre,.js-next', function(event) {
+            if ($(this).hasClass('js-pre')) {
+                obj.current -=1;
+            } else{
+                obj.current +=1;
+            };
+            init(obj.current);
+        });
+        // 对过表单来跳转页面时
+        that.on('submit', '.js-toPage', function(event) {
+            var goNum = $('.js-toVal').val()*1;
+            if (1<=goNum && goNum<=obj.pages && goNum!==obj.current) {
+               obj.current = goNum;
+               init(obj.current);
+            }else{
+                alert('没有这一页哦！');
+            };            
+            return false;
+        });
+    };
+})(jQuery);
+
+$(function(){
+    $("#paging").pagination({
+        current: 1,    //当前页
+        total: 400 ,     //信息数
+        changePage:function(parg){
+            $('.js-list').text('现在是第'+parg+'页')
+        }
+    });
+});
+</body>
+</html>
