@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>摇一摇</title>
+</head>
+<body>
+<div class="xx">
+<p>alpha: <span id="alpha"></span></p>
+<p>beta: <span id="beta"></span></p>
+<p>gamma: <span id="gamma"></span></p>
+<p>acceleration: <span id="acceleration"></span></p>	
+</div>
+
+<script>
+;(function(win,doc){
+	var dAlpha = doc.getElementById('alpha'),
+		dBeat = doc.getElementById('beta'),
+		dGamma = doc.getElementById('gamma'),
+		dAcceleration = doc.getElementById('acceleration');
+	// 其提供设备的物理方向信息
+	win.addEventListener('deviceorientation',function(event){
+		dAlpha.innerHTML = Math.round(event.alpha); 
+		dBeat.innerHTML = Math.round(event.beta); 
+		dGamma.innerHTML = Math.round(event.gamma);
+	});
+	// 其提供设备的加速信息
+	var lastTime = 0,x, y, z, lastX, lastY, lastZ;
+	win.addEventListener('devicemotion',function(event){
+		var acceleration = event.accelerationIncludingGravity,
+			curTime = +new Date();
+		if ((curTime - lastTime) > 300) {
+			var diffTime = curTime - lastTime;
+			lastTime = curTime;
+			x = acceleration.x;
+	        y = acceleration.y;
+	        z = acceleration.z;
+			var speed = Math.abs(x+y+z -lastX-lastY-lastZ) / diffTime * 10000; 
+			dAcceleration.innerHTML = speed;
+			if (speed>800) {alert('摇了')}
+		};
+		lastX = x;
+    	lastY = y;
+    	lastZ = z;
+	});
+})(window,document)
+</script>
+</body>
+</html>
