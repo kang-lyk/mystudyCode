@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>svg百分比</title>
+<style>
+*{padding: 0;
+.loadingP {
+	width: 200px;
+	height: 200px;
+	position: relative;
+}
+.loadingP-svg{
+	position: relative; 
+}
+.loadingP svg{
+	display: block;
+
+}
+.loadingP-num {
+	text-align: center;
+	position: absolute;
+	top: 0;
+	left: 0;
+	font-size: 25px;
+	color: blue;
+	width: 100%;
+	line-height: 200px;
+	vertical-align: middle;
+}
+.loadingP-num:after {
+	content: '%';
+}
+</style>
+</head>
+<body>
+<div class="loadingP">
+	<div class="loadingP-svg">
+		<svg width="200" height="200" >
+			<circle r="96" cx="100" cy="100" stroke-width="4" stroke="#ccc" fill="none"></circle>
+			<circle class="loadingP-graph" r="96" cx="100" cy="100" transform="rotate(-90,100,100)" stroke-width="4" stroke="none" fill="none" stroke-dasharray="0" stroke-dashoffset="0"></circle>
+		</svg>
+	</div>
+	<p class="loadingP-num">46</p>
+</div>
+<div class="loadingP">
+	<div class="loadingP-svg">
+		<svg width="200" height="200" >
+			<circle r="96" cx="100" cy="100" stroke-width="4" stroke="#ccc" fill="none"></circle>
+			<circle class="loadingP-graph" r="96" cx="100" cy="100" transform="rotate(-90,100,100)" stroke-width="4" stroke="none" fill="none" stroke-dasharray="0" stroke-dashoffset="0"></circle>
+		</svg>	
+	</div>
+	<p class="loadingP-num">87</p>
+</div>
+
+<script>
+;(function(win,doc){
+	function ProgressCircle(dom,color){
+		this.graph = dom.getElementsByClassName('loadingP-graph')[0];
+		//周长
+		this.perimeter = 2*Math.PI*this.graph.getAttribute('r')*1;
+		
+		// 曲线的长度
+		this.graphLength = function(){
+			// 百分比
+			var percent = dom.getElementsByClassName('loadingP-num')[0].innerHTML*1;
+			return this.perimeter * percent / 100;
+		};
+		this.graph.setAttribute('stroke-dasharray', this.graphLength()+' '+this.perimeter);
+		this.graph.setAttribute('stroke', color);
+	};
+	var $loadingP = doc.querySelectorAll('.loadingP');
+	for (var i = 0,len = $loadingP.length; i < len; i++) {
+		new ProgressCircle($loadingP[i],'blue');
+	}
+})(window,document)
+</script>
+</body>
+</html>
