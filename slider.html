@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>幻灯</title>
+<style>
+*{ padding: 0; margin: 0;}
+ul,li,ol,dl,dt,dd {list-style: none;}
+.slider,.slider-inner li {
+	width: 500px;
+	height: 350px;
+	overflow: hidden;
+}
+.slider {
+	position: relative;
+}
+.slider-inner li {
+	float: left;
+}
+.slider-pre,.slider-next {
+	position: absolute;
+	top: 62px;
+	background-color: rgba(0,0,0,.5);
+	width: 50px;
+	height: 67px;
+}
+.slider-pre {left: 0;}
+.slider-next {right: 0;}
+</style>
+</head>
+<body>
+
+<div class="slider">
+	<ul class="slider-inner j-sBox">
+		<li class="j-sItem">
+			<img src="http://www.atool.org/placeholder.png?size=500x200&text=半神半圣亦半仙&bg=795548&fg=fff" alt="">
+		</li>
+		<li class="j-sItem">
+			<img src="http://www.atool.org/placeholder.png?size=500x200&text=全儒全道是全贤&bg=795548&fg=fff" alt="">
+		</li>
+		<li class="j-sItem">
+			<img src="http://www.atool.org/placeholder.png?size=500x200&text=脑中之书藏开卷&bg=795548&fg=fff" alt="">
+		</li>
+		<li class="j-sItem">
+			<img src="http://www.atool.org/placeholder.png?size=500x200&text=掌握文武半边天&bg=795548&fg=fff" alt="">
+		</li>
+	</ul>
+	<div class="slider-pre j-sPre"></div>
+	<div class="slider-next j-sNext"></div>
+</div>
+
+<script>
+;(function(win,doc){
+
+	function slider(opt){
+		this.options = {
+			auto:true,
+			speed:'300',
+			interval:'600',
+			domMain:'',
+			domLeft:'',
+			domRight:'',
+			showItem:true
+		};
+		
+	};
+	win.slider = slider;
+})(window,document)
+</script>
+</body>
+</html>
