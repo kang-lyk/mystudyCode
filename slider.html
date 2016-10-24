@@ -31,7 +31,11 @@ ul,li,ol,dl,dt,dd {list-style: none;}
 </head>
 <body>
 
-<div class="slider">
+<div class="slider" data-options='{
+	"auto":"true",
+	"speed":"500",
+	"interval":"800"
+}'>
 	<ul class="slider-inner j-sBox">
 		<li class="j-sItem">
 			<img src="http://www.atool.org/placeholder.png?size=500x200&text=半神半圣亦半仙&bg=795548&fg=fff" alt="">
@@ -52,21 +56,76 @@ ul,li,ol,dl,dt,dd {list-style: none;}
 
 <script>
 ;(function(win,doc){
-
-	function slider(opt){
+	// 
+	function slider(){
 		this.options = {
 			auto:true,
-			speed:'300',
-			interval:'600',
-			domMain:'',
-			domLeft:'',
-			domRight:'',
+			speed:300,
+			interval:600,
+			domMain:'.j-sBox',
+			domLeft:'.j-sPre',
+			domRight:'j-sNext',
 			showItem:true
 		};
-		
+				
 	};
+	// 合并对象
+	slider.prototype.extend = function(){
+		var arr = Array.prototype.slice.call(arguments),
+			newObj = {},
+			arrLength = arr.length,
+			resultObj = arr[0];
+		for (var i = 1; i < arrLength; i++) {
+			var obj = arr[i];
+			for (var x in obj) {
+				newObj[x] = obj[x];
+			};
+		};
+		for (var x in newObj) {
+			resultObj[x] = newObj[x];
+		};		
+		return resultObj;
+	};
+	// 设置
+	slider.prototype.setDefault = function(options){
+		var defaultOptions = this.options;
+		return this.extend(defaultOptions,options);
+	};
+	// 取得新的参数
+	slider.prototype.getOptions = function(dataOptions,options){
+		var defaultOptions = this.options,
+			newDataOptions = {};
+		try {
+			newDataOptions = JSON.parse(dataOptions);
+		}catch(error){
+			throw '请检查json字符串是否正确或浏览器是否支持JSON.parse';
+		};
+		return this.extend({},defaultOptions,options,newDataOptions);
+	};
+	// 开始运行幻灯
+	slider.prototype.init = function(dom,options){
+		var options = options || {};
+		var newOptions = this.getOptions(dom.getAttribute('data-options'),options);
+		console.log(this.options,newOptions);
+	};
+
 	win.slider = slider;
-})(window,document)
+
+	var focus = new slider();
+
+	focus.setDefault({
+		auto:false,
+		speed:100,
+		interval:100,		
+		showItem:false
+	});
+
+	focus.init(document.querySelector('.slider')); 
+
+	/*var obj0 = {},obj1 = {a:1},obj2 = {},obj3 = {a:10,b:2};
+	console.log(focus.extend(obj0,obj1,obj2,obj3),obj0,obj1,obj2,obj3);*/
+
+})(window,document);
 </script>
 </body>
 </html>
