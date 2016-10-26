@@ -8,122 +8,299 @@
 *{ padding: 0; margin: 0;}
 ul,li,ol,dl,dt,dd {list-style: none;}
 .slider,.slider-inner li {
-	width: 500px;
-	height: 350px;
-	overflow: hidden;
+    width: 500px;
+    height: 200px;
+    overflow: hidden;
 }
 .slider {
-	position: relative;
+    position: relative;
 }
 .slider-inner li {
-	float: left;
+    float: left;    
+    z-index: 0;
+    position: absolute;
+}
+.slider-inner li:first-child {
+    z-index: 1;
 }
 .slider-pre,.slider-next {
-	position: absolute;
-	top: 62px;
-	background-color: rgba(0,0,0,.5);
-	width: 50px;
-	height: 67px;
+    position: absolute;
+    top: 62px;
+    z-index: 1;
+    background-color: rgba(0,0,0,.5);
+    width: 50px;
+    height: 67px;
+    cursor: pointer;
 }
 .slider-pre {left: 0;}
 .slider-next {right: 0;}
+.slider-item {
+    position: absolute;
+    z-index: 1;
+    bottom: 15px;
+    width: 100%;
+    text-align: center;
+}
+.slider-item li {
+    border-radius: 50%;
+    border: 1px solid #fff;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 0 10px;
+    cursor: pointer;
+}
+.slider-item li.active {
+    background-color: #fff;
+}
 </style>
 </head>
 <body>
 
 <div class="slider" data-options='{
-	"auto":"true",
-	"speed":"500",
-	"interval":"800"
+    "auto":"true",
+    "animateTime":"500",
+    "interval":"800"
 }'>
-	<ul class="slider-inner j-sBox">
-		<li class="j-sItem">
-			<img src="http://www.atool.org/placeholder.png?size=500x200&text=半神半圣亦半仙&bg=795548&fg=fff" alt="">
-		</li>
-		<li class="j-sItem">
-			<img src="http://www.atool.org/placeholder.png?size=500x200&text=全儒全道是全贤&bg=795548&fg=fff" alt="">
-		</li>
-		<li class="j-sItem">
-			<img src="http://www.atool.org/placeholder.png?size=500x200&text=脑中之书藏开卷&bg=795548&fg=fff" alt="">
-		</li>
-		<li class="j-sItem">
-			<img src="http://www.atool.org/placeholder.png?size=500x200&text=掌握文武半边天&bg=795548&fg=fff" alt="">
-		</li>
-	</ul>
-	<div class="slider-pre j-sPre"></div>
-	<div class="slider-next j-sNext"></div>
+    <ul class="slider-inner j-sBox">
+        <li class="j-sItem">
+            <img src="http://www.atool.org/placeholder.png?size=500x200&text=半神半圣亦半仙&bg=795548&fg=fff" alt="">
+        </li>
+        <li class="j-sItem">
+            <img src="http://www.atool.org/placeholder.png?size=500x200&text=全儒全道是全贤&bg=4c4568&fg=fff" alt="">
+        </li>
+        <li class="j-sItem">
+            <img src="http://www.atool.org/placeholder.png?size=500x200&text=脑中之书藏开卷&bg=7d6f3e&fg=fff" alt="">
+        </li>
+        <li class="j-sItem">
+            <img src="http://www.atool.org/placeholder.png?size=500x200&text=掌握文武半边天&bg=4c4e9a&fg=fff" alt="">
+        </li>
+    </ul>
+    <div class="slider-pre j-sPre"></div>
+    <div class="slider-next j-sNext"></div>
+    <!-- <ul class="slider-item">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul> -->
 </div>
 
 <script>
 ;(function(win,doc){
-	// 
-	function slider(){
-		this.options = {
-			auto:true,
-			speed:300,
-			interval:600,
-			domMain:'.j-sBox',
-			domLeft:'.j-sPre',
-			domRight:'j-sNext',
-			showItem:true
-		};
-				
-	};
-	// 合并对象
-	slider.prototype.extend = function(){
-		var arr = Array.prototype.slice.call(arguments),
-			newObj = {},
-			arrLength = arr.length,
-			resultObj = arr[0];
-		for (var i = 1; i < arrLength; i++) {
-			var obj = arr[i];
-			for (var x in obj) {
-				newObj[x] = obj[x];
-			};
-		};
-		for (var x in newObj) {
-			resultObj[x] = newObj[x];
-		};		
-		return resultObj;
-	};
-	// 设置
-	slider.prototype.setDefault = function(options){
-		var defaultOptions = this.options;
-		return this.extend(defaultOptions,options);
-	};
-	// 取得新的参数
-	slider.prototype.getOptions = function(dataOptions,options){
-		var defaultOptions = this.options,
-			newDataOptions = {};
-		try {
-			newDataOptions = JSON.parse(dataOptions);
-		}catch(error){
-			throw '请检查json字符串是否正确或浏览器是否支持JSON.parse';
-		};
-		return this.extend({},defaultOptions,options,newDataOptions);
-	};
-	// 开始运行幻灯
-	slider.prototype.init = function(dom,options){
-		var options = options || {};
-		var newOptions = this.getOptions(dom.getAttribute('data-options'),options);
-		console.log(this.options,newOptions);
-	};
+    'use strict'; //用“严格模式”
+    // 
+    function slider(){
+        this.options = {
+            auto:true,     //是否自动播放
+            initIndex:0, //首屏所使用的数据列表索引
+            animateTime:300, //动画时间
+            interval:600,    // 场影间隔时间
+            animateEasing: 'ease', //动画效果，可选 linear、ease、ease-in、ease-out、ease-in-out
+            isVertical:false, //是非垂直展示
+            domMain:'.j-sBox', //展示区
+            domItem:'.j-sItem', //单个场影
+            domPre:'.j-sPre', //上一个按钮
+            domNext:'.j-sNext',//下一个按钮
+            showItem:true, //是否显示小点
+            showPre:true, //显示上一个
+            showNext:true,//显示下一个
+            isLooping:true, //是否做回环
+            callback:null // 回调
+        };  
+    };
+    // 合并对象
+    slider.prototype.extend = function(){
+        var arr = Array.prototype.slice.call(arguments),
+            newObj = {},
+            arrLength = arr.length,
+            resultObj = arr[0];
+        for (var i = 1; i < arrLength; i++) {
+            var obj = arr[i];
+            for (var x in obj) {
+                newObj[x] = obj[x];
+            };
+        };
+        for (var x in newObj) {
+            resultObj[x] = newObj[x];
+        };      
+        return resultObj;
+    };
+    // 设置
+    slider.prototype.setDefault = function(options){
+        var defaultOptions = this.options;
+        return this.extend(defaultOptions,options);
+    };
+    // 取得新的参数
+    slider.prototype.getOptions = function(dataOptions,options){
+        var defaultOptions = this.options,
+            newDataOptions = {};
+        try {
+            newDataOptions = JSON.parse(dataOptions);
+        }catch(error){
+            throw '请检查json字符串是否正确或浏览器是否支持JSON.parse';
+        };
+        return this.extend({},defaultOptions,options,newDataOptions);
+    };
+    // 判断是非支持css3动画,并返回前缀
+    slider.prototype.hasAnimation = function(){
+        var arr = ['MsAnimation','MozAnimation','WebkitAnimation','animation'], 
+            i = arr.length,
+            domStyle =document.createElement('div').style,
+            obj = {
+                has:false,
+                prefix:''
+            };
+        while(i>0){
+            i--;
+            var str = arr[i];
+            if (str in domStyle) {
+                obj.has = true;
+                obj.prefix = str.replace(/Animation/i,'');
+                break;
+            };
+        };
+        return obj;
+    };
+    // 开始运行幻灯
+    slider.prototype.init = function(dom,options){
+        var hasAnimation = this.hasAnimation();
+        this.prefix = hasAnimation.prefix;
+        if (!hasAnimation.has) {
+            throw '请下载支持css3动画的浏览器';
+            return false;
+        };
+        var options = options || {},
+            newOptions = this.newOptions = this.getOptions(dom.getAttribute('data-options'),options), // 取得新"设置参数"
+            dom = this.dom = dom,
+            domMain = this.domMain = dom.querySelector(newOptions.domMain),
+            domItem = this.domItem = dom.querySelectorAll(newOptions.domItem),
+            domPre = this.domPre = dom.querySelector(newOptions.domPre),
+            domNext = this.domNext = dom.querySelector(newOptions.domNext),
+            itemLength = this.itemLength = domItem.length ;
+        newOptions.isLooping = (itemLength>3) ? newOptions.isLooping : false;
+        this.goIndex(); //
+        if (newOptions.showItem) {
 
-	win.slider = slider;
+        };
+        var that = this;
+        // 点击到上一个
+        domPre.onclick = function(){
+            if (newOptions.initIndex == 0) {
+               newOptions.initIndex = itemLength-1; 
+            } else {
+                newOptions.initIndex-- ;
+            };            
+            that.goIndex(-1);
+        };
+        // 点击到下一个
+        domNext.onclick = function(){
+            if (newOptions.initIndex == itemLength-1) {
+                newOptions.initIndex = 0; 
+            } else {
+                newOptions.initIndex++; 
+            };            
+            that.goIndex(+1);
+        };
+    };
+    // 运行的第几个场景 ,goNum 只能是1或-1   
+    slider.prototype.goIndex = function(goNum){
+        var i = 0, 
+            preIndex = 0, 
+            nextIndex = 0,
+            that = this,
+            newOptions = this.newOptions,
+            lastIndex = this.itemLength-1,
+            domItem = this.domItem,
+            cssPrefix = !!this.prefix ? '-'+this.prefix.toLowerCase()+'-' : '', //css3前缀
+            transition = cssPrefix+'transform '+newOptions.animateTime+'ms '+newOptions.animateEasing,
+            initIndex = newOptions.initIndex, //当前场景
+            translate = newOptions.isVertical ? 'translateY' : 'translateX'; 
+        switch(initIndex){
+            case 0:
+                preIndex = lastIndex;
+                nextIndex = 1;
+            break;
+            case lastIndex :
+                preIndex = lastIndex-1;
+                nextIndex = 0;
+            break;
+            default:
+                preIndex = initIndex-1;
+                nextIndex = initIndex+1;
+        };
+        if (typeof goNum === 'number') {            
+            while(i<this.itemLength){
+                var samllItem = that.dom.querySelector;
+                switch(i){
+                    case initIndex:
+                        var domItemStyle = domItem[initIndex].style;
+                        domItemStyle.zIndex = 1;
+                        domItemStyle[this.prefix+'transition'] = transition;
+                        domItemStyle[this.prefix+'transform'] = translate+'(0)';
+                    break;
+                    case preIndex:
+                        var domItemStyle = domItem[preIndex].style;
+                        domItemStyle.zIndex = (goNum>0) ? 1 : 0;                        
+                        domItemStyle[this.prefix+'transition'] = transition;
+                        domItemStyle[this.prefix+'transform'] = translate+'(-100%)';
+                    break;
+                    case nextIndex:
+                        var domItemStyle = domItem[nextIndex].style;
+                        domItemStyle.zIndex = 1;
+                        domItemStyle[this.prefix+'transition'] = transition;                        
+                        domItemStyle[this.prefix+'transform'] = translate+'(100%)';
+                    break;
+                    default:
+                        var domItemStyle = domItem[i].style;
+                        domItemStyle.zIndex = 0;
+                        domItemStyle[this.prefix+'transition'] = cssPrefix+'transform 0ms ease';
+                        domItemStyle[this.prefix+'transform'] = translate+'(100%)';                        
+                };
+                i++;
+            };
+        }else{
+            var domItme = doc.createElement('ul');
+            domItme.className = 'slider-item';
+            while(i<this.itemLength){
+                var activeItem = doc.createElement('li');
+                switch(i){
+                    case initIndex:
+                        activeItem.className = 'active';
+                        domItem[i].style.cssText = 'z-index:1; '+cssPrefix+'transform: '+translate+'(0); ';
+                    break;
+                    case preIndex:
+                        domItem[i].style.cssText = 'z-index:1; '+cssPrefix+'transform: '+translate+'(-100%); ';
+                    break;
+                    case nextIndex:
+                        domItem[i].style.cssText = 'z-index:1; '+cssPrefix+'transform: '+translate+'(100%); ';
+                    break;
+                    default:
+                        domItem[i].style.cssText = 'z-index:0; '+cssPrefix+'transform: '+translate+'(100%); ';
+                };
+                // getAttribute
+                domItme.appendChild(activeItem);
 
-	var focus = new slider();
+                i++;
+            };
+            this.dom.appendChild(domItme);
+        } 
+    };
 
-	focus.setDefault({
-		auto:false,
-		speed:100,
-		interval:100,		
-		showItem:false
-	});
+    win.slider = slider;
 
-	focus.init(document.querySelector('.slider')); 
+/******************华丽的分隔线*******************/
 
-	/*var obj0 = {},obj1 = {a:1},obj2 = {},obj3 = {a:10,b:2};
-	console.log(focus.extend(obj0,obj1,obj2,obj3),obj0,obj1,obj2,obj3);*/
+    var focus = new slider();
+
+    focus.setDefault({
+        auto:false,
+        animateTime:300, //动画时间
+        nterval:600,    
+        showItem:false
+    });
+
+    focus.init(doc.querySelector('.slider')); 
 
 })(window,document);
 </script>
