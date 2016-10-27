@@ -59,6 +59,7 @@ ul,li,ol,dl,dt,dd {list-style: none;}
 
 <div class="slider" data-options='{
     "auto":"true",
+    "initIndex":"1",
     "animateTime":"500",
     "interval":"800"
 }'>
@@ -105,7 +106,6 @@ ul,li,ol,dl,dt,dd {list-style: none;}
             showItem:true, //是否显示小点
             showPre:true, //显示上一个
             showNext:true,//显示下一个
-            isLooping:true, //是否做回环
             callback:null // 回调
         };  
     };
@@ -178,14 +178,14 @@ ul,li,ol,dl,dt,dd {list-style: none;}
             domPre = this.domPre = dom.querySelector(newOptions.domPre),
             domNext = this.domNext = dom.querySelector(newOptions.domNext),
             itemLength = this.itemLength = domItem.length ;
-        newOptions.isLooping = (itemLength>3) ? newOptions.isLooping : false;
         this.goIndex(); //
-        if (newOptions.showItem) {
+        /*if (newOptions.showItem) {
 
-        };
+        };*/
         var that = this;
         // 点击到上一个
         domPre.onclick = function(){
+            that.oldIndex = newOptions.initIndex;
             if (newOptions.initIndex == 0) {
                newOptions.initIndex = itemLength-1; 
             } else {
@@ -195,6 +195,7 @@ ul,li,ol,dl,dt,dd {list-style: none;}
         };
         // 点击到下一个
         domNext.onclick = function(){
+            that.oldIndex = newOptions.initIndex;
             if (newOptions.initIndex == itemLength-1) {
                 newOptions.initIndex = 0; 
             } else {
@@ -214,7 +215,7 @@ ul,li,ol,dl,dt,dd {list-style: none;}
             domItem = this.domItem,
             cssPrefix = !!this.prefix ? '-'+this.prefix.toLowerCase()+'-' : '', //css3前缀
             transition = cssPrefix+'transform '+newOptions.animateTime+'ms '+newOptions.animateEasing,
-            initIndex = newOptions.initIndex, //当前场景
+            initIndex = newOptions.initIndex*1, //当前场景
             translate = newOptions.isVertical ? 'translateY' : 'translateX'; 
         switch(initIndex){
             case 0:
@@ -229,19 +230,23 @@ ul,li,ol,dl,dt,dd {list-style: none;}
                 preIndex = initIndex-1;
                 nextIndex = initIndex+1;
         };
-        if (typeof goNum === 'number') {            
+        if (!!goNum) {
+            var samllItem = that.dom.querySelectorAll('.slider-item li'),
+                indexDifference = initIndex - that.oldIndex; 
+            console.log(indexDifference);           
             while(i<this.itemLength){
-                var samllItem = that.dom.querySelector;
+                samllItem[i].className = '';
                 switch(i){
                     case initIndex:
                         var domItemStyle = domItem[initIndex].style;
                         domItemStyle.zIndex = 1;
                         domItemStyle[this.prefix+'transition'] = transition;
                         domItemStyle[this.prefix+'transform'] = translate+'(0)';
+                        samllItem[i].className = 'active';
                     break;
                     case preIndex:
                         var domItemStyle = domItem[preIndex].style;
-                        domItemStyle.zIndex = (goNum>0) ? 1 : 0;                        
+                        domItemStyle.zIndex = (indexDifference>0) ? 1 : 0;                        
                         domItemStyle[this.prefix+'transition'] = transition;
                         domItemStyle[this.prefix+'transform'] = translate+'(-100%)';
                     break;
