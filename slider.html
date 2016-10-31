@@ -16,13 +16,9 @@ ul,li,ol,dl,dt,dd {list-style: none;}
     position: relative;
 }
 .slider-inner li {
-    float: left;    
-    z-index: 0;
-    position: absolute;
+    float: left;  
 }
-.slider-inner li:first-child {
-    z-index: 1;
-}
+
 .slider-pre,.slider-next {
     position: absolute;
     top: 62px;
@@ -59,7 +55,7 @@ ul,li,ol,dl,dt,dd {list-style: none;}
 
 <div class="slider" data-options='{
     "auto":"true",
-    "initIndex":"1",
+    "initIndex":"0",
     "animateTime":"500",
     "interval":"800"
 }'>
@@ -106,32 +102,45 @@ ul,li,ol,dl,dt,dd {list-style: none;}
             showItem:true, //是否显示小点
             showPre:true, //显示上一个
             showNext:true,//显示下一个
-            callback:null // 回调
+            callback:null // 回调 
         };  
     };
-    // 合并对象
-    slider.prototype.extend = function(){
-        var arr = Array.prototype.slice.call(arguments),
+    /**
+     * [extend 合并对象]
+     * @return {[object]} [返回合并后的对像]
+     */
+    slider.prototype.extend = function(){           
+        var arr = Array.prototype.slice.call(arguments), //把参数从伪数组转为数组
             newObj = {},
             arrLength = arr.length,
             resultObj = arr[0];
         for (var i = 1; i < arrLength; i++) {
             var obj = arr[i];
             for (var x in obj) {
-                newObj[x] = obj[x];
+                if (obj.hasOwnProperty(x)) { //排除掉原型链上的属性
+                    newObj[x] = obj[x];
+                };                
             };
         };
         for (var x in newObj) {
             resultObj[x] = newObj[x];
-        };      
+        };
         return resultObj;
     };
-    // 设置
+    /**
+     * [setDefault 设置默认参数]
+     * @param {[object]} options [幻灯的参数]
+     */
     slider.prototype.setDefault = function(options){
         var defaultOptions = this.options;
         return this.extend(defaultOptions,options);
     };
-    // 取得新的参数
+    /**
+     * [getOptions 取得新的参数]
+     * @param  {[object]} dataOptions [旧的参数]
+     * @param  {[object]} options     [你要设置的参数]
+     * @return {[object]}             [新的参数]
+     */
     slider.prototype.getOptions = function(dataOptions,options){
         var defaultOptions = this.options,
             newDataOptions = {};
@@ -142,7 +151,10 @@ ul,li,ol,dl,dt,dd {list-style: none;}
         };
         return this.extend({},defaultOptions,options,newDataOptions);
     };
-    // 判断是非支持css3动画,并返回前缀
+    /**
+     * [hasAnimation 判断是非支持css3动画,并返回前缀]
+     * @return {objcet} [has:是非支持动画，prefix：css前缀]
+     */
     slider.prototype.hasAnimation = function(){
         var arr = ['MsAnimation','MozAnimation','WebkitAnimation','animation'], 
             i = arr.length,
@@ -162,7 +174,13 @@ ul,li,ol,dl,dt,dd {list-style: none;}
         };
         return obj;
     };
-    // 开始运行幻灯
+    // 
+    /**
+     * [init 开始运行幻灯]
+     * @param  {[Object]} dom     [在运行幻灯的dom元素]
+     * @param  {[Object]} options [description]
+     * @return {[type]}         [description]
+     */
     slider.prototype.init = function(dom,options){
         var hasAnimation = this.hasAnimation();
         this.prefix = hasAnimation.prefix;
@@ -177,119 +195,80 @@ ul,li,ol,dl,dt,dd {list-style: none;}
             domItem = this.domItem = dom.querySelectorAll(newOptions.domItem),
             domPre = this.domPre = dom.querySelector(newOptions.domPre),
             domNext = this.domNext = dom.querySelector(newOptions.domNext),
-            itemLength = this.itemLength = domItem.length ;
-        this.goIndex(); //
-        /*if (newOptions.showItem) {
+            domStyle = getComputedStyle(dom),
+            _width = parseInt(domStyle.width) + parseInt(domStyle.paddingLeft) + parseInt(domStyle.paddingRight),
+            _heigth = parseInt(domStyle._heigth) + parseInt(domStyle.paddingTop) + parseInt(domStyle.paddingBottom),
+            itemLength = this.itemLength = domItem.length,
+            lastItem =  itemLength-1;
 
-        };*/
-        var that = this;
+        domMain.appendChild(domItem[0].cloneNode(true));
+        domMain.insertBefore(domItem[lastItem].cloneNode(true),domItem[0]);
+        domMain.style.width = _width*(itemLength+2) + 'px';
+       
+        var that = this,
+            translate = this.translate = newOptions.isVertical ? 'translateY' : 'translateX',
+            oneWidth = this.oneWidth = 100/(itemLength+2);
+        newOptions.initIndex = newOptions.initIndex*1;
+
+        this.goIndex(); //
         // 点击到上一个
         domPre.onclick = function(){
-            that.oldIndex = newOptions.initIndex;
-            if (newOptions.initIndex == 0) {
-               newOptions.initIndex = itemLength-1; 
+            if (newOptions.initIndex > itemLength) {
+                newOptions.initIndex = 0; 
             } else {
-                newOptions.initIndex-- ;
+                newOptions.initIndex--; 
             };            
-            that.goIndex(-1);
+            that.goIndex(newOptions.initIndex);
         };
         // 点击到下一个
         domNext.onclick = function(){
-            that.oldIndex = newOptions.initIndex;
-            if (newOptions.initIndex == itemLength-1) {
+            if (newOptions.initIndex > itemLength) {
                 newOptions.initIndex = 0; 
             } else {
                 newOptions.initIndex++; 
             };            
-            that.goIndex(+1);
+            that.goIndex(newOptions.initIndex);
         };
+        // 监听动画结束时
+        domMain.addEventListener('webkitTransitionEnd',function(){
+            console.log(newOptions.initIndex);
+            var domMainStyle = that.domMain.style;
+            if (newOptions.initIndex >= itemLength) { //最后到第一个的情况
+                newOptions.initIndex = 0;
+                domMainStyle.cssText = 'width:' + _width*(itemLength+2) + 'px;';
+                domMainStyle[that.prefix+'transform'] = translate+'(-'+that.oneWidth+'%)';
+            } else if(newOptions.initIndex < 0) { //第一个到最后的情况
+                newOptions.initIndex = lastItem;
+                domMainStyle.cssText = 'width:' + _width*(itemLength+2) + 'px;';
+                domMainStyle[that.prefix+'transform'] = translate+'(-'+that.oneWidth*itemLength+'%)';
+            };
+        },false);
     };
-    // 运行的第几个场景 ,goNum 只能是1或-1   
-    slider.prototype.goIndex = function(goNum){
+    /**
+     * [goIndex 跳到第几个场景]
+     * @param  {Boolean} isAnimate [true则进行动画]
+     */
+    slider.prototype.goIndex = function(isAnimate){
         var i = 0, 
-            preIndex = 0, 
-            nextIndex = 0,
             that = this,
             newOptions = this.newOptions,
-            lastIndex = this.itemLength-1,
+            oneWidth = this.oneWidth,
+            domMainStyle = this.domMain.style,
             domItem = this.domItem,
             cssPrefix = !!this.prefix ? '-'+this.prefix.toLowerCase()+'-' : '', //css3前缀
             transition = cssPrefix+'transform '+newOptions.animateTime+'ms '+newOptions.animateEasing,
-            initIndex = newOptions.initIndex*1, //当前场景
-            translate = newOptions.isVertical ? 'translateY' : 'translateX'; 
-        switch(initIndex){
-            case 0:
-                preIndex = lastIndex;
-                nextIndex = 1;
-            break;
-            case lastIndex :
-                preIndex = lastIndex-1;
-                nextIndex = 0;
-            break;
-            default:
-                preIndex = initIndex-1;
-                nextIndex = initIndex+1;
-        };
-        if (!!goNum) {
-            var samllItem = that.dom.querySelectorAll('.slider-item li'),
-                indexDifference = initIndex - that.oldIndex; 
-            console.log(indexDifference);           
-            while(i<this.itemLength){
-                samllItem[i].className = '';
-                switch(i){
-                    case initIndex:
-                        var domItemStyle = domItem[initIndex].style;
-                        domItemStyle.zIndex = 1;
-                        domItemStyle[this.prefix+'transition'] = transition;
-                        domItemStyle[this.prefix+'transform'] = translate+'(0)';
-                        samllItem[i].className = 'active';
-                    break;
-                    case preIndex:
-                        var domItemStyle = domItem[preIndex].style;
-                        domItemStyle.zIndex = (indexDifference>0) ? 1 : 0;                        
-                        domItemStyle[this.prefix+'transition'] = transition;
-                        domItemStyle[this.prefix+'transform'] = translate+'(-100%)';
-                    break;
-                    case nextIndex:
-                        var domItemStyle = domItem[nextIndex].style;
-                        domItemStyle.zIndex = 1;
-                        domItemStyle[this.prefix+'transition'] = transition;                        
-                        domItemStyle[this.prefix+'transform'] = translate+'(100%)';
-                    break;
-                    default:
-                        var domItemStyle = domItem[i].style;
-                        domItemStyle.zIndex = 0;
-                        domItemStyle[this.prefix+'transition'] = cssPrefix+'transform 0ms ease';
-                        domItemStyle[this.prefix+'transform'] = translate+'(100%)';                        
-                };
-                i++;
-            };
-        }else{
-            var domItme = doc.createElement('ul');
-            domItme.className = 'slider-item';
-            while(i<this.itemLength){
-                var activeItem = doc.createElement('li');
-                switch(i){
-                    case initIndex:
-                        activeItem.className = 'active';
-                        domItem[i].style.cssText = 'z-index:1; '+cssPrefix+'transform: '+translate+'(0); ';
-                    break;
-                    case preIndex:
-                        domItem[i].style.cssText = 'z-index:1; '+cssPrefix+'transform: '+translate+'(-100%); ';
-                    break;
-                    case nextIndex:
-                        domItem[i].style.cssText = 'z-index:1; '+cssPrefix+'transform: '+translate+'(100%); ';
-                    break;
-                    default:
-                        domItem[i].style.cssText = 'z-index:0; '+cssPrefix+'transform: '+translate+'(100%); ';
-                };
-                // getAttribute
-                domItme.appendChild(activeItem);
-
-                i++;
-            };
-            this.dom.appendChild(domItme);
-        } 
+            initIndex = newOptions.initIndex>-1 ? newOptions.initIndex+1 : newOptions.initIndex , //当前场景
+            translate = this.translate; 
+        if (isAnimate) {
+            domMainStyle[this.prefix+'transition'] = transition;
+            if (initIndex>0) {                
+                domMainStyle[this.prefix+'transform'] = translate+'(-'+oneWidth*(initIndex)+'%)'; 
+            }else{
+                domMainStyle[this.prefix+'transform'] = translate+'(0%)';
+            }
+        } else {
+            domMainStyle[this.prefix+'transform'] = translate+'(-'+oneWidth*(initIndex)+'%)';
+        }
     };
 
     win.slider = slider;
