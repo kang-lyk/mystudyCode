@@ -49,6 +49,14 @@ ul,li,ol,dl,dt,dd {list-style: none;}
 .slider-item li.active {
     background-color: #fff;
 }
+.vertical .slider-item{
+    width: 12px;
+    top: 50px;
+    right: 10px;
+}
+.vertical .slider-item li{
+    margin: 5px 0;
+}
 </style>
 </head>
 <body>
@@ -56,31 +64,55 @@ ul,li,ol,dl,dt,dd {list-style: none;}
 <div class="slider" data-options='{
     "auto":"true",
     "initIndex":"0",
-    "animateTime":"500",
-    "interval":"800"
+    "animateTime":"350",
+    "interval":"4000"
 }'>
     <ul class="slider-inner j-sBox">
+        
         <li class="j-sItem">
-            <img src="http://www.atool.org/placeholder.png?size=500x200&text=半神半圣亦半仙&bg=795548&fg=fff" alt="">
+            <img src="https://dummyimage.com/500x200/4c4568/fff&text=1" alt="">
         </li>
         <li class="j-sItem">
-            <img src="http://www.atool.org/placeholder.png?size=500x200&text=全儒全道是全贤&bg=4c4568&fg=fff" alt="">
+            <img src="https://dummyimage.com/500x200/7d6f3e/fff&text=2" alt="">
         </li>
         <li class="j-sItem">
-            <img src="http://www.atool.org/placeholder.png?size=500x200&text=脑中之书藏开卷&bg=7d6f3e&fg=fff" alt="">
+            <img src="https://dummyimage.com/500x200/4c4e9a/fff&text=3" alt="">
         </li>
         <li class="j-sItem">
-            <img src="http://www.atool.org/placeholder.png?size=500x200&text=掌握文武半边天&bg=4c4e9a&fg=fff" alt="">
+            <img src="https://dummyimage.com/500x200/795548/fff&text=4" alt="">
         </li>
     </ul>
     <div class="slider-pre j-sPre"></div>
     <div class="slider-next j-sNext"></div>
-    <!-- <ul class="slider-item">
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-    </ul> -->
+    <ul class="slider-item j-item">
+       <li class="active"></li>
+       <li></li>
+       <li></li>
+       <li></li>
+   </ul>
+</div>
+<p>垂直的</p>
+<div class="slider vertical" data-options='{"isVertical":"true","showPreNext":"false"}'>
+    <ul class="slider-inner j-sBox">
+        <li class="j-sItem">
+            <img src="http://placekitten.com/500/200" alt="">
+        </li>
+        <li class="j-sItem">
+            <img src="https://dummyimage.com/500x200/4c4e9a/fff&text=猫" alt="">
+        </li>
+        <li class="j-sItem">
+            <img src="http://placekitten.com/g/500/200" alt="">
+        </li>
+        <li class="j-sItem">
+            <img src="https://dummyimage.com/500x200/795548/fff&text=猫" alt="">
+        </li>
+    </ul>
+    <ul class="slider-item j-item">
+       <li class="active"></li>
+       <li></li>
+       <li></li>
+       <li></li>
+   </ul>
 </div>
 
 <script>
@@ -92,16 +124,14 @@ ul,li,ol,dl,dt,dd {list-style: none;}
             auto:true,     //是否自动播放
             initIndex:0, //首屏所使用的数据列表索引
             animateTime:300, //动画时间
-            interval:600,    // 场影间隔时间
+            interval:3000,    // 场影间隔时间
             animateEasing: 'ease', //动画效果，可选 linear、ease、ease-in、ease-out、ease-in-out
             isVertical:false, //是非垂直展示
             domMain:'.j-sBox', //展示区
             domItem:'.j-sItem', //单个场影
             domPre:'.j-sPre', //上一个按钮
             domNext:'.j-sNext',//下一个按钮
-            showItem:true, //是否显示小点
-            showPre:true, //显示上一个
-            showNext:true,//显示下一个
+            showPreNext:true, //显示上一个\下一个            
             callback:null // 回调 
         };  
     };
@@ -128,13 +158,13 @@ ul,li,ol,dl,dt,dd {list-style: none;}
         return resultObj;
     };
     /**
-     * [setDefault 设置默认参数]
+     * [setDefault 设置默认参数 ---未能完成]
      * @param {[object]} options [幻灯的参数]
      */
-    slider.prototype.setDefault = function(options){
+    /*slider.prototype.setDefault = function(options){
         var defaultOptions = this.options;
         return this.extend(defaultOptions,options);
-    };
+    };*/
     /**
      * [getOptions 取得新的参数]
      * @param  {[object]} dataOptions [旧的参数]
@@ -143,13 +173,22 @@ ul,li,ol,dl,dt,dd {list-style: none;}
      */
     slider.prototype.getOptions = function(dataOptions,options){
         var defaultOptions = this.options,
-            newDataOptions = {};
+            newDataOptions = {},
+            newData = {};
         try {
             newDataOptions = JSON.parse(dataOptions);
         }catch(error){
             throw '请检查json字符串是否正确或浏览器是否支持JSON.parse';
         };
-        return this.extend({},defaultOptions,options,newDataOptions);
+        this.extend(newData,defaultOptions,options,newDataOptions);
+        var regTrue = /^true$/;        
+        newData.auto = regTrue.test(newData.auto) ? true : false;
+        newData.isVertical = regTrue.test(newData.isVertical) ? true : false;
+        newData.showPreNext = regTrue.test(newData.showPreNext) ? true : false;
+        newData.initIndex *= 1;
+        newData.animateTime *= 1;
+        newData.interval *= 1;
+        return newData;
     };
     /**
      * [hasAnimation 判断是非支持css3动画,并返回前缀]
@@ -197,51 +236,105 @@ ul,li,ol,dl,dt,dd {list-style: none;}
             domNext = this.domNext = dom.querySelector(newOptions.domNext),
             domStyle = getComputedStyle(dom),
             _width = parseInt(domStyle.width) + parseInt(domStyle.paddingLeft) + parseInt(domStyle.paddingRight),
-            _heigth = parseInt(domStyle._heigth) + parseInt(domStyle.paddingTop) + parseInt(domStyle.paddingBottom),
+            _height = parseInt(domStyle.height) + parseInt(domStyle.paddingTop) + parseInt(domStyle.paddingBottom),
             itemLength = this.itemLength = domItem.length,
-            lastItem =  itemLength-1;
-
+            lastItem =  itemLength-1,
+            that = this,
+            translate = this.translate = newOptions.isVertical ? 'translateY' : 'translateX',
+            oneWidth = this.oneWidth = 100/(itemLength+2),
+            samllItem = this.samllItem = dom.getElementsByClassName('j-item'),
+            timeoutFn ;
         domMain.appendChild(domItem[0].cloneNode(true));
         domMain.insertBefore(domItem[lastItem].cloneNode(true),domItem[0]);
-        domMain.style.width = _width*(itemLength+2) + 'px';
-       
-        var that = this,
-            translate = this.translate = newOptions.isVertical ? 'translateY' : 'translateX',
-            oneWidth = this.oneWidth = 100/(itemLength+2);
-        newOptions.initIndex = newOptions.initIndex*1;
 
-        this.goIndex(); //
-        // 点击到上一个
-        domPre.onclick = function(){
-            if (newOptions.initIndex > itemLength) {
-                newOptions.initIndex = 0; 
-            } else {
+        if (newOptions.isVertical) { //判断是不是垂直的
+            domMain.style.height = _height*(itemLength+2) + 'px';
+        } else {
+            domMain.style.width = _width*(itemLength+2) + 'px';
+        }        
+       
+
+        this.goIndex(); //设置初始位置
+        this.inAnimate = false;
+        if (newOptions.showPreNext) { //如果要显示上一个、下一个按钮
+            // 点击到上一个
+            domPre.onclick = function(){
+                if (that.inAnimate) {return false;}
+                clearTimeout(timeoutFn);
                 newOptions.initIndex--; 
-            };            
-            that.goIndex(newOptions.initIndex);
-        };
-        // 点击到下一个
-        domNext.onclick = function(){
-            if (newOptions.initIndex > itemLength) {
-                newOptions.initIndex = 0; 
-            } else {
+                that.goIndex(true);
+            };
+            // 点击到下一个
+            domNext.onclick = function(){
+                if (that.inAnimate) {return false;}
+                clearTimeout(timeoutFn);
                 newOptions.initIndex++; 
-            };            
-            that.goIndex(newOptions.initIndex);
+                that.goIndex(true);
+            };    
         };
+        // 点击圆点
+        if (samllItem.length>0) {
+            var item = samllItem[0].getElementsByTagName('li'),i = item.length-1;
+            while(i>-1){
+                (function(num){
+                    item[num].onclick = function(){
+                        if (that.inAnimate || num == newOptions.initIndex) {return false};
+                        clearTimeout(timeoutFn);
+                        newOptions.initIndex = num; 
+                        that.goIndex(true);
+                    }
+                })(i);             
+                i--;
+            };
+        }; 
+        
+        function autoFn(){
+            if (!that.inAnimate) {
+                newOptions.initIndex++; 
+                that.goIndex(true);
+            };
+        };
+        if (newOptions.auto) {
+            timeoutFn = setTimeout(autoFn,newOptions.interval);
+            dom.onmouseenter = function(event){
+                clearTimeout(timeoutFn);
+            };
+            dom.onmouseleave = function(event){
+                clearTimeout(timeoutFn);
+                timeoutFn = setTimeout(autoFn,newOptions.interval);
+            };
+        };  
+
+        var transitionEnd=(function(){
+            var transitions = {
+                'WebkitTransition':'webkitTransitionEnd',
+                'MozTransition':'transitionend',
+                'transition' : 'transitionend'
+            };
+            for (var x in transitions) {
+                if (typeof domMain.style[x] === "string") {
+                    return transitions[x];
+                }
+            }
+        })();
+
         // 监听动画结束时
-        domMain.addEventListener('webkitTransitionEnd',function(){
-            console.log(newOptions.initIndex);
-            var domMainStyle = that.domMain.style;
+        domMain.addEventListener(transitionEnd,function(){
+            var domMainStyle = domMain.style;
+            that.inAnimate = false; 
             if (newOptions.initIndex >= itemLength) { //最后到第一个的情况
                 newOptions.initIndex = 0;
-                domMainStyle.cssText = 'width:' + _width*(itemLength+2) + 'px;';
+                domMainStyle[that.prefix+'transition'] = null;
                 domMainStyle[that.prefix+'transform'] = translate+'(-'+that.oneWidth+'%)';
             } else if(newOptions.initIndex < 0) { //第一个到最后的情况
                 newOptions.initIndex = lastItem;
-                domMainStyle.cssText = 'width:' + _width*(itemLength+2) + 'px;';
+                domMainStyle[that.prefix+'transition'] = null;
                 domMainStyle[that.prefix+'transform'] = translate+'(-'+that.oneWidth*itemLength+'%)';
             };
+            if (newOptions.auto) {
+                clearTimeout(timeoutFn);
+                timeoutFn = setTimeout(autoFn,newOptions.interval);  
+            }
         },false);
     };
     /**
@@ -256,15 +349,35 @@ ul,li,ol,dl,dt,dd {list-style: none;}
             domMainStyle = this.domMain.style,
             domItem = this.domItem,
             cssPrefix = !!this.prefix ? '-'+this.prefix.toLowerCase()+'-' : '', //css3前缀
-            transition = cssPrefix+'transform '+newOptions.animateTime+'ms '+newOptions.animateEasing,
+            transition = cssPrefix+'transform '+newOptions.animateTime+'ms '+newOptions.animateEasing, //动画
             initIndex = newOptions.initIndex>-1 ? newOptions.initIndex+1 : newOptions.initIndex , //当前场景
             translate = this.translate; 
         if (isAnimate) {
+            var item = [];
+            if (that.samllItem.length>0) {
+                item = that.samllItem[0].getElementsByTagName('li')
+                var i = item.length-1;
+                while(i>-1){
+                    if (i==newOptions.initIndex) {
+                        item[i].className = 'active';
+                    } else {
+                        item[i].className = '';
+                    }
+                    i--;                    
+                };    
+            };
             domMainStyle[this.prefix+'transition'] = transition;
-            if (initIndex>0) {                
+            that.inAnimate = true;
+            if (initIndex>0) {
                 domMainStyle[this.prefix+'transform'] = translate+'(-'+oneWidth*(initIndex)+'%)'; 
+                if(item.length>0 && initIndex>item.length){
+                    item[0].className = 'active';
+                }
             }else{
                 domMainStyle[this.prefix+'transform'] = translate+'(0%)';
+                if (item.length>0) {
+                    item[item.length-1].className = 'active';
+                }                
             }
         } else {
             domMainStyle[this.prefix+'transform'] = translate+'(-'+oneWidth*(initIndex)+'%)';
@@ -275,16 +388,17 @@ ul,li,ol,dl,dt,dd {list-style: none;}
 
 /******************华丽的分隔线*******************/
 
-    var focus = new slider();
-
+    /*var focus = new slider();
+    // 设置默认参数
     focus.setDefault({
         auto:false,
         animateTime:300, //动画时间
-        nterval:600,    
-        showItem:false
-    });
-
-    focus.init(doc.querySelector('.slider')); 
+        interval:600
+    });*/
+    var sliders = doc.querySelectorAll('.slider');
+    for (var i = 0; i < sliders.length; i++) {
+        new slider().init(sliders[i]); 
+    }
 
 })(window,document);
 </script>
